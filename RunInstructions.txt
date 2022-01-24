@@ -1,0 +1,59 @@
+To run simulations:
+condor_submit [name of file]
+
+To check on simulations:
+condor_q
+condor_q -wide
+
+To delete current simulations:
+condor_rm [user]
+
+To run file if condor not responding:
+condor_submit [name of file]
+condor_q -wide
+Copy command and add './build/ARM/' before command and '-d' after gem.opt
+ex: ./build/ARM/gem5.opt -d /home/DREXEL/aw868/research/NU_Chiplet_results/MeshXY_XY/ /home/DREXEL/aw868/research/new_aw868_gem5/configs/example/garnet_synth_traffic.py --num-cpus=16 --num-dirs=16 --network=garnet --topology=Mesh_XY --mesh-rows=4 --sim-cycles=50000 --synthetic=uniform_random --routing-algorithm=1 --vcs-per-vnet=4 --injectionrate=0.5
+
+
+To rebuild:
+./arm_build.sh
+
+Routing Algorithms:
+0. TABLE
+1. XY (for 2D Mesh topologies)
+2. XYZ (for 2D/3D Mesh topologies)
+3. U_CHIPLETS (for user defined num_chiplet_x, num_chiplet_y configuration)
+4. NU_CHIPLETS
+5. WIRELESS (for wireless configs)
+
+Git:
+1. git add .
+2. git commit -m "commit message" -n OR git commit -m "commit message" --no-verify
+3. git push
+
+To run more recent GCC version:
+scl enable devtoolset-7 bash
+scl enable rh-python36 bash
+    -enable other version of python with 'six'
+
+To run random layout generator:
+python generateNonUniformLayout.py
+condor_submit random_layout_instructions
+
+To launch grid42:
+gridcli node launch vp93/synchrotrace-condor grid42
+
+To see statuses of grids:
+gridcli nodes
+
+To ssh into grid:
+ssh aw868@grid42
+
+To exit out of grid:
+exit
+gridcli node stop grid42
+
+python ./util/on-chip-network-power-area.py . results/0/m5out ext/dsent/configs/router.cfg ext/dsent/configs/electrical-link.cfg > out.txt
+
+To make multiple directories:
+mkdir ARGS_{0..99}_{1..10}

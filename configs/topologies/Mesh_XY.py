@@ -150,7 +150,7 @@ class Mesh_XY(SimpleTopology):
                                              src_outport="North",
                                              dst_inport="South",
                                              latency = link_latency,
-                                             weight=2))
+                                             weight=1))
                     link_count += 1
 
         # South output to North input links (weight = 2)
@@ -165,7 +165,7 @@ class Mesh_XY(SimpleTopology):
                                              src_outport="South",
                                              dst_inport="North",
                                              latency = link_latency,
-                                             weight=2))
+                                             weight=1))
                     link_count += 1
 
 
@@ -175,4 +175,4 @@ class Mesh_XY(SimpleTopology):
     def registerTopology(self, options):
         for i in range(options.num_cpus):
             FileSystemConfig.register_node([i],
-                    MemorySize(options.mem_size) // options.num_cpus, i)
+                    MemorySize(options.mem_size) / options.num_cpus, i)

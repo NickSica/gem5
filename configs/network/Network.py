@@ -41,6 +41,38 @@ def define_options(parser):
         "--mesh-rows", type=int, default=0,
         help="the number of rows in the mesh topology")
     parser.add_argument(
+        "--mesh-cols", type=int, default=0,
+        help="the number of columns in the mesh topology (x-dimension)")
+    parser.add_argument(
+        "--z-depth", type=int, default=0,
+        help="the z-depth in the mesh topology (z-dimension, 3D only)")
+    parser.add_argument(
+        "--num-chiplets-x", type=int, default=1,
+        help="number of chiplets in the x-dimension")
+    parser.add_argument(
+        "--num-chiplets-y", type=int, default=1,
+        help="number of chiplets in the y-dimension")
+    parser.add_argument(
+        "--nu-chiplets-input", type=str, default="",
+        help="non-uniform chiplets designation (start col, start row, "
+             "end col, end row)")
+    parser.add_argument(
+        "--wireless-input", type=str, default="",
+        help="""wireless router designation
+            (if random, then string will define number of wireless antennas
+            to be placed per layer, if user-defined, then string will
+            define exact routers the antennas will be placed
+            on x,y,z,x,y,z...""")
+    parser.add_argument(
+        "--wireless-input-pattern", type=str, default="",
+        help="wireless antenna placement pattern (r=random, u=user-defined)")
+    parser.add_argument(
+        "--wireless-width", type=int, default=4,
+        help="width for the wireless routers")
+    parser.add_argument(
+        "--wired-width", type=int, default=32,
+        help="width for the wired routers")
+    parser.add_argument(
         "--network", default="simple",
         choices=['simple', 'garnet'],
         help="""'simple'|'garnet' (garnet2.0 will be deprecated.)""")
@@ -70,7 +102,12 @@ def define_options(parser):
         help="""routing algorithm in network.
             0: weight-based table
             1: XY (for Mesh. see garnet/RoutingUnit.cc)
-            2: Custom (see garnet/RoutingUnit.cc""")
+            2: XYZ
+            3: U_CHIPLETS
+            4: NU_CHIPLETS
+            5: WIRELESS
+            6: Custom (see garnet/RoutingUnit.cc)""")
+
     parser.add_argument(
         "--network-fault-model", action="store_true",
         default=False,
@@ -117,6 +154,15 @@ def init_network(options, network, InterfaceClass):
 
     if options.network == "garnet":
         network.num_rows = options.mesh_rows
+        network.num_cols = options.mesh_cols
+        network.z_depth = options.z_depth
+        network.num_chiplets_x = options.num_chiplets_x
+        network.num_chiplets_y = options.num_chiplets_y
+        network.nu_chiplets_input = options.nu_chiplets_input
+        network.wireless_input = options.wireless_input
+        network.wired_width = options.wired_width
+        network.wireless_width = options.wireless_width
+        network.wireless_input_pattern = options.wireless_input_pattern
         network.vcs_per_vnet = options.vcs_per_vnet
         network.ni_flit_size = options.link_width_bits / 8
         network.routing_algorithm = options.routing_algorithm

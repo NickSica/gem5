@@ -90,6 +90,8 @@ class SwitchAllocator : public Consumer
     std::vector<int> m_round_robin_inport;
     std::vector<int> m_port_requests;
     std::vector<int> m_vc_winners;
+    std::vector<InputUnit *> m_input_unit;
+    std::vector<OutputUnit *> m_output_unit;
 };
 
 } // namespace garnet

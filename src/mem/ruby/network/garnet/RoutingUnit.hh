@@ -72,6 +72,24 @@ class RoutingUnit
     int outportComputeXY(RouteInfo route,
                          int inport,
                          PortDirection inport_dirn);
+    int outportComputeXYZ(RouteInfo route,
+                         int inport,
+                         PortDirection inport_dirn);
+    int outportComputeWestFirst(RouteInfo route,
+                         int inport,
+                         PortDirection inport_dirn);
+    int outportComputeNorthLast(RouteInfo route,
+                         int inport,
+                         PortDirection inport_dirn);
+    int outportComputeUChiplets(RouteInfo route,
+                         int inport,
+                         PortDirection inport_dirn);
+    int outportComputeNUChiplets(RouteInfo route,
+                         int inport,
+                         PortDirection inport_dirn);
+    int outportComputeWireless(RouteInfo route,
+                         int inport,
+                         PortDirection inport_dirn);
 
     // Custom Routing Algorithm using Port Directions
     int outportComputeCustom(RouteInfo route,

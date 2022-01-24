@@ -115,7 +115,9 @@ def computeRouterPowerAndArea(router, stats_file, config, int_links, ext_links,
 
     for int_link in int_links:
         if config.get(int_link, "node_a") == router or \
-           config.get(int_link, "node_b") == router:
+           config.get(int_link, "node_b") == router or \
+           config.get(int_link, "dst_node") == router or \
+           config.get(int_link, "src_node") == router:
            num_ports += 1
 
     for ext_link in ext_links:
@@ -139,6 +141,26 @@ def computeLinkPower(link, stats_file, config, sim_seconds):
     frequency = getClock(link + ".nls1", config)
     power = dsent.computeLinkPower(frequency)
     print("%s.nls1 Power: " % link, power)
+
+## Compute the power consumed by the given link (internal)
+def computeLinkPowerInt(link, stats_file, config, sim_seconds):
+    frequency = getClock(link + ".network_link", config)
+    power = dsent.computeLinkPower(frequency)
+    print("%s.network_link Power: " % link, power)
+
+    frequency = getClock(link + ".network_link", config)
+    power = dsent.computeLinkPower(frequency)
+    print("%s.network_link Power: " % link, power)
+
+## Compute the power consumed by the given link (external)
+def computeLinkPowerExt(link, stats_file, config, sim_seconds):
+    frequency = getClock(link + ".network_links0", config)
+    power = dsent.computeLinkPower(frequency)
+    print("%s.network_links0 Power: " % link, power)
+
+    frequency = getClock(link + ".network_links1", config)
+    power = dsent.computeLinkPower(frequency)
+    print("%s.network_links1 Power: " % link, power)
 
 
 def parseStats(stats_file, config, router_config_file, link_config_file,
@@ -184,11 +206,11 @@ def parseStats(stats_file, config, router_config_file, link_config_file,
 
     # Compute the power consumed by the links
     for link in int_links:
-        computeLinkPower(link, stats_file, config,
-                         simulation_length_in_seconds)
+        computeLinkPowerInt(link, stats_file, config,
+                            simulation_length_in_seconds)
     for link in ext_links:
-        computeLinkPower(link, stats_file, config,
-                         simulation_length_in_seconds)
+        computeLinkPowerExt(link, stats_file, config,
+                            simulation_length_in_seconds)
 
     # Finalize DSENT
     dsent.finalize()

@@ -65,6 +65,15 @@ GarnetNetwork::GarnetNetwork(const Params &p)
     : Network(p)
 {
     m_num_rows = p.num_rows;
+    m_num_cols = p.num_cols;
+    m_z_depth = p.z_depth;
+    m_num_chiplets_x = p.num_chiplets_x;
+    m_num_chiplets_y = p.num_chiplets_y;
+    m_nu_chiplets_input = p.nu_chiplets_input;
+    m_wireless_input = p.wireless_input;
+    m_wireless_input_pattern = p.wireless_input_pattern;
+    m_wireless_width = p.wireless_width;
+    m_wired_width = p.wired_width;
     m_ni_flit_size = p.ni_flit_size;
     m_max_vcs_per_vnet = 0;
     m_buffers_per_data_vc = p.buffers_per_data_vc;
@@ -121,7 +130,107 @@ GarnetNetwork::init()
     m_topology_ptr->createLinks(this);
 
     // Initialize topology specific parameters
-    if (getNumRows() > 0) {
+    if (getNumRows() > 0 && getRoutingAlgorithm() == 2) { //if XYZ algorithm
+        std::cout<<"Using XYZ Routing Algorithm"<<std::endl;
+        m_num_rows = getNumRows();
+
+        if (getZDepth()>0){
+            m_z_depth = getZDepth();
+        } else {
+            m_z_depth = (m_routers.size() / m_num_rows) / m_num_rows;
+        }
+
+        if (getNumCols()>0){
+            m_num_cols = getNumCols();
+        } else {
+            m_num_cols = (m_routers.size() / m_num_rows) / m_z_depth;
+        }
+
+        //display dimensions of router for user/debug
+        // std::cout<<"router size: "<<m_routers.size()<<std::endl;
+        // std::cout<<"m_num_rows: "<<m_num_rows<<std::endl;
+        // std::cout<<"m_num_cols: "<<m_num_cols<<std::endl;
+        // std::cout<<"m_z_depth: "<<m_z_depth<<std::endl;
+        // std::cout<<"\nATTENTION: coordinate format is now (z,y,x)\n"<<std::endl;
+        assert(m_num_rows * m_num_cols * m_z_depth <= m_routers.size());
+    } else if (getNumRows() > 0 && getRoutingAlgorithm() == 3) {
+        std::cout<<"Using Uniform Chiplet Routing Algorithm"<<std::endl;
+        m_num_rows = getNumRows();
+
+        if (getZDepth()>0){
+            m_z_depth = getZDepth();
+        } else {
+            m_z_depth = (m_routers.size() / m_num_rows) / m_num_rows;
+        }
+
+        if (getNumCols()>0){
+            m_num_cols = getNumCols();
+        } else {
+            m_num_cols = (m_routers.size() / m_num_rows) / m_z_depth;
+        }
+
+        //display dimensions of router for user/debug
+        // std::cout<<"router size: "<<m_routers.size()<<std::endl;
+        // std::cout<<"m_num_rows: "<<m_num_rows<<std::endl;
+        // std::cout<<"m_num_cols: "<<m_num_cols<<std::endl;
+        // std::cout<<"m_z_depth: "<<m_z_depth<<std::endl;
+        assert(m_num_rows * m_num_cols * m_z_depth <= m_routers.size());
+    } else if (getNumRows() > 0 && getRoutingAlgorithm() == 4) {
+        std::cout<<"Using Non-Uniform Chiplet Routing Algorithm"<<std::endl;
+        m_num_rows = getNumRows();
+
+        if (getZDepth()>0){
+            m_z_depth = getZDepth();
+        } else {
+            m_z_depth = (m_routers.size() / m_num_rows) / m_num_rows;
+        }
+
+        if (getNumCols()>0){
+            m_num_cols = getNumCols();
+        } else {
+            m_num_cols = (m_routers.size() / m_num_rows) / m_z_depth;
+        }
+        // CALL INITIALIZATION OF SECTOR VECTOR HERE
+        m_sector_list = calculateNUChipletVector(m_nu_chiplets_input);
+        m_num_unused_links = countUnusedLinks(m_sector_list);
+        std::cout<<"m_num_unused_links: "<<m_num_unused_links*m_z_depth<<std::endl;
+
+        assert(m_num_rows * m_num_cols * m_z_depth <= m_routers.size());
+    } else if (getNumRows() > 0 && getRoutingAlgorithm() == 5) {
+        std::cout<<"Using Wireless Routing Algorithm"<<std::endl;
+        m_num_rows = getNumRows();
+
+        if (getZDepth()>0){
+            m_z_depth = getZDepth();
+        } else {
+            m_z_depth = (m_routers.size() / m_num_rows) / m_num_rows;
+        }
+
+        if (getNumCols()>0){
+            m_num_cols = getNumCols();
+        } else {
+            m_num_cols = (m_routers.size() / m_num_rows) / m_z_depth;
+        }
+        // CALL INITIALIZATION OF SECTOR VECTOR HERE
+        m_sector_list = calculateNUChipletVector(m_nu_chiplets_input);
+        m_num_unused_links = countUnusedLinks(m_sector_list);
+        std::cout<<"m_num_unused_links: "<<m_num_unused_links*m_z_depth<<std::endl;
+
+        for (std::vector<Router*>::const_iterator i= m_routers.begin(); i != m_routers.end(); ++i) {
+            Router* router = safe_cast<Router*>(*i);
+            if (router->get_width() == 4) {
+                // iterate through all routers and put wireless ones (width=4) into m_wireless_list
+                m_wireless_list.push_back(router->get_id());
+            }
+        }
+        std::cout<<"m_wireless_list: ";
+        for (int i=0; i<m_wireless_list.size(); i++) {
+            std::cout<<m_wireless_list[i]<<", ";
+        }
+        std::cout<<std::endl;
+
+        assert(m_num_rows * m_num_cols * m_z_depth <= m_routers.size());
+    } else if (getNumRows() > 0) {
         // Only for Mesh topology
         // m_num_rows and m_num_cols are only used for
         // implementing XY or custom routing in RoutingUnit.cc
