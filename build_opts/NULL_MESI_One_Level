@@ -1,0 +1,4 @@
+TARGET_ISA = 'null'
+CPU_MODELS = ''
+PROTOCOL = 'MESI_One_Level'
+NUMBER_BITS_PER_SET = '2048'

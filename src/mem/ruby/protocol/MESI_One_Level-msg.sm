@@ -1,0 +1,72 @@
+// Modified from Jason Lowe-Power MSI examples
+
+enumeration(CoherenceRequestType, desc="Types of request messages") {
+  GETS,       desc="Request from cache for a block with read permission";
+  GETM,       desc="Request from cache for a block with write permission";
+  PUTS,       desc="Sent to directory when evicting a block in S (clean WB)";
+  PUTE,       desc="Sent to directory when evicting a block in E (No data)";
+  PUTM,       desc="Sent to directory when evicting a block in M";
+
+  // "Requests" from the directory to the caches on the fwd network
+  INV,        desc="Probe the cache and invalidate any matching blocks";
+  PUT_ACK,    desc="The put request has been processed.";
+}
+
+enumeration(CoherenceResponseType, desc="Types of response messages") {
+  DATA,       desc="Contains the most up-to-date data";
+  DATA_EXC,   desc="Contains the most up-to-date data";
+  INV_ACK,    desc="Message from another cache that they have inv. the blk";
+}
+
+structure(RequestMsg, desc="Used for Cache->Dir and Fwd messages",
+          interface="Message") {
+  // NOTE: You can't name addr "Addr" because it would conflict with the
+  // Addr *type*.
+  Addr addr,                   desc="Physical address for this request";
+  CoherenceRequestType Type,   desc="Type of request";
+  MachineID Requestor,         desc="Node who initiated the request";
+  NetDest Destination,         desc="Multicast destination mask";
+  DataBlock DataBlk,           desc="data for the cache line";
+  // NOTE: You *must* use MessageSize as the name of this variable, and it's
+  // required that you have a MessageSize for each type of message. You will
+  // the the error "panic: MessageSizeType() called on wrong message!"
+  MessageSizeType MessageSize, desc="size category of the message";
+
+  // This must be overridden here to support functional accesses
+  bool functionalRead(Packet *pkt) {
+    // Requests should never have the only copy of the most up-to-date data
+    return false;
+  }
+
+  bool functionalWrite(Packet *pkt) {
+    // No check on message type required since the protocol should read
+    // data block from only those messages that contain valid data
+    return testAndWrite(addr, DataBlk, pkt);
+  }
+}
+
+structure(ResponseMsg, desc="Used for Cache->Dir and Fwd messages",
+          interface="Message") {
+  Addr addr,                   desc="Physical address for this response";
+  CoherenceResponseType Type,  desc="Type of response";
+  MachineID Sender,            desc="Node who is responding to the request";
+  NetDest Destination,         desc="Multicast destination mask";
+  DataBlock DataBlk,           desc="data for the cache line";
+  MessageSizeType MessageSize, desc="size category of the message";
+  int Acks,                    desc="Number of acks required from others";
+
+  // This must be overridden here to support functional accesses
+  bool functionalRead(Packet *pkt) {
+    if (Type == CoherenceResponseType:DATA ||
+        Type == CoherenceResponseType:DATA_EXC) {
+      return testAndRead(addr, DataBlk, pkt);
+    }
+    return false;
+  }
+
+  bool functionalWrite(Packet *pkt) {
+    // No check on message type required since the protocol should read
+    // data block from only those messages that contain valid data
+    return testAndWrite(addr, DataBlk, pkt);
+  }
+}

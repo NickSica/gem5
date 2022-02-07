@@ -1,0 +1,5 @@
+protocol "MESI_One_Level";
+include "RubySlicc_interfaces.slicc";
+include "MESI_One_Level-msg.sm";
+include "MESI_One_Level-L1Cache.sm";
+include "MESI_One_Level-dir.sm";

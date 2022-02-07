@@ -41,6 +41,7 @@ main.Append(ALL_PROTOCOLS=[
     'MOESI_CMP_token',
     'MOESI_hammer',
     'Garnet_standalone',
+    'MESI_One_Level',
     'None'
     ])
 
