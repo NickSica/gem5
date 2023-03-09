@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python ~/gem5/util/on-chip-network-power-area.py "$@"
+python3 util/on-chip-network-power-area.py "$@"

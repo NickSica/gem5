@@ -1,25 +1,32 @@
 # to run: python3 generateNonUniformLayout.py
 import random
 import sys
+import os
 
 print("Enter topology type (0=WT1_A8, 1=WT2_A8, 2=WT4_A8, 3=WT8_A8, 4=WT16_A8, 5=WT8_A16, 6=WT8_A32, 7=WT8_A64): ")
 topology_type = int(input())
 print("Enter command type (0=gem5, 1=energy, 2=power sum, 3=transmission count): ")
 command_type = int(input())
+sweep_type = 0
 if command_type == 0:
     print("Enter injection rate sweep (0=general, 1=narrow): ")
     sweep_type = int(input())
     if sweep_type == 1:
         print("Enter saturation point: ")
         saturation_point = float(input())
-
+    else:
+        pass
+else:
+    pass
 
 topology_names = ["WT1_A8", "WT2_A8", "WT4_A8", "WT8_A8", "WT16_A8", "WT8_A16", "WT8_A32", "WT8_A64"]
 file_name_prefix = ["general_","narrow_"]
 sim_name = topology_names[topology_type]
-gem5_dir = "~/gem5/"
+############################################################### Change #1 ############################################################
+gem5_dir = f"{os.environ['HOME']}/gem5/"
+res_dir = f"{gem5_dir}/python_results/"
 results_dir_name = file_name_prefix[sweep_type]+"results/"
-
+out_dir = f"{res_dir}{results_dir_name}{sim_name}"
 
 x_length=16
 y_length=16
@@ -63,15 +70,18 @@ elif topology_type==7:
 
 
 if command_type == 0:
+    ##################################################################### Change #2 #####################################################################
     file_name = file_name_prefix[sweep_type]+sim_name
     header = """Universe = vanilla
 Executable = """ + gem5_dir + """build/ARM/gem5.opt
 Error = condor.err
 Output = condor.out
 Log = condor.log
-
 RESULTS_DIR = """+gem5_dir+results_dir_name+sim_name+"""
 SYNTHTRAFFIC_RUN_SCRIPT =  """ + gem5_dir + """configs/example/garnet_synth_traffic.py\n"""
+
+####################################################################### Change #3 ###########################################################################
+
 elif command_type == 1:
     file_name = file_name_prefix[sweep_type]+sim_name+'_energy'
     header = """Universe = vanilla
@@ -82,6 +92,8 @@ Log = energy.log
 
 RESULTS_DIR = """+gem5_dir+results_dir_name+sim_name+"""
 DSENT_CFG = """+gem5_dir+"""ext/dsent/configs/router.cfg """ + gem5_dir + """ext/dsent/configs/electrical-link.cfg\n"""
+
+####################################################################### Change #4 ###########################################################################
 elif command_type == 2:
     file_name = file_name_prefix[sweep_type]+sim_name+'_power_sum'
     header = """Universe = vanilla
@@ -91,6 +103,8 @@ Output = power_sum.out
 Log = power_sum.log
 
 RESULTS_DIR = """+gem5_dir+results_dir_name+sim_name+"""\n"""
+
+####################################################################### Change #5 ###########################################################################
 elif command_type == 3:
     file_name = file_name_prefix[sweep_type]+sim_name+'_transmission_count'
     header = """Universe = vanilla
@@ -101,18 +115,22 @@ Log = transmission_count.log
 
 RESULTS_DIR = """+gem5_dir+results_dir_name+sim_name+"""\n"""
 
+####################################################################### Change #6 ###########################################################################
 with open(file_name, 'w') as f:
     sys.stdout = f
     print(header)
     for count, pattern in enumerate(traffic_patterns):
         for ir_index in range(len(injection_rates)):
+            if not os.path.exists(f"{out_dir}/ARGS_{count}_{ir_index}"):
+                os.makedirs(f"{out_dir}/ARGS_{count}_{ir_index}")
+
             if command_type==0:
                 print("ARGS_%s_%s = --num-cpus=%s --num-dirs=256 --network=garnet --topology=Sparse_Wireless_NUChiplets --mesh-rows=%s --mesh-cols=%s --z-depth=%s --nu-chiplets-input=%s --wireless-input-pattern=u --wireless-input=%s --sim-cycles=10000000 --synthetic=%s --routing-algorithm=5 --vcs-per-vnet=4 --injectionrate=%s" %(count, ir_index, y_length*x_length*z_length, y_length, x_length, z_length, chiplet_layout_string, wireless_layout_string, pattern, injection_rates[ir_index]))
                 print("Initialdir = $(RESULTS_DIR)/ARGS_%s_%s" %(count, ir_index))
                 print("arguments = \"$(SYNTHTRAFFIC_RUN_SCRIPT) $(ARGS_%s_%s)\"" %(count, ir_index))
                 print("Queue\n")
             elif command_type == 1:
-                print("ARGS_%s_%s = " + gem5_dir + " %s/%s/ARGS_%s_%s/m5out" %(count, ir_index, results_dir_name, sim_name, count, ir_index))
+                print("ARGS_{}_{} = {}/{}/ARGS_{}_{}//m5out".format(count, ir_index, gem5_dir, results_dir_name, count, ir_index))
                 print("Initialdir = $(RESULTS_DIR)/ARGS_%s_%s" %(count, ir_index))
                 print("arguments = \"$(ARGS_%s_%s) $(DSENT_CFG)\"" %(count, ir_index))
                 print("Queue\n")

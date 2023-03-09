@@ -1,11 +1,11 @@
 Universe = vanilla
-Executable = /home/aw868/new_aw868_gem5/build/ARM/gem5.opt
+Executable = build/ARM/gem5.opt
 Error = condortest.err
 Output = condortest.out
 Log = condortest.log
 
-SYNCHRO_DIR = /home/aw868/new_aw868_gem5/results/T4
-SYNTHTRAFFIC_RUN_SCRIPT =  /home/aw868/new_aw868_gem5/configs/example/garnet_synth_traffic.py
+SYNCHRO_DIR = results/T4
+SYNTHTRAFFIC_RUN_SCRIPT =  configs/example/garnet_synth_traffic.py
 
 ARGS_0_0 = --num-cpus=512 --num-dirs=256 --network=garnet --topology=Sparse_NonUniform_Chiplets --mesh-rows=16 --mesh-cols=16 --z-depth=2 --nu-chiplets-input=0,0,7,7,8,0,15,7,0,8,7,15,8,8,15,15 --sim-cycles=10000000 --synthetic=uniform_random --routing-algorithm=4 --vcs-per-vnet=4 --injectionrate=0.03
 Initialdir = $(SYNCHRO_DIR)/ARGS_0_0
